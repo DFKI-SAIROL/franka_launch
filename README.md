@@ -1,10 +1,18 @@
-# Launch files for Franka Fr3s
+# franka_launch
 
-## Launching robots
+Launch files and configs for Franka FR3 robots (single and bimanual setups).
 
-We usually launch the robots from `dynamic_example.launch.py`.
+## Launch files
 
-```
+| File | Purpose |
+|---|---|
+| `example.launch.py` | Main entry point — launches one or both arms |
+| `franka.launch.py` | Core Franka bringup (used by example) |
+| `gripper.launch.py` | Launches a gripper independently |
+
+## Launching the robot
+
+```bash
 ros2 launch franka_launch example.launch.py \
     robot_config_file:=dfki_bimanual \
     spawn_franka_left:=false \
@@ -12,33 +20,20 @@ ros2 launch franka_launch example.launch.py \
     use_fake_hardware:=true
 ```
 
-## Launching grippers 
+Config files are in `config/` (e.g. `dfki_bimanual.yaml`).
 
-Grippers are launched independently from the arms. We currently support the usual Franka parallel grippers and the Robotis RH-P12-RN-A grippers
+## Launching a gripper
 
-### Launching Robotis (RH-P12-RN-A) gripper
+Grippers are launched separately. Currently supported: Franka gripper and Robotis RH-P12-RN-A.
 
-Before launching, make sure that the gripper is connected to a power source and that the switch on the controller board is switched on.
-
-Afterwards, you can launch the Robotis gripper with:
-
-```
+```bash
 ros2 launch franka_launch gripper.launch.py arm_prefix:=franka_right
 ```
 
-> TODO: The arm_prefix is important as it is currently hardcoded as the prefix of the joint states in the `dynamixel_controllers.yaml`
+Test the Robotis gripper with a joint trajectory command (position range: 0.0–1.1):
 
-
-You can check if the controller is working by publishing joint position commands to the 
-
-```
+```bash
 ros2 topic pub --once /franka_right/gripper/gripper_controller/joint_trajectory \
     trajectory_msgs/msg/JointTrajectory \
     "{joint_names: ['franka_right_rh_r1'], points: [{positions: [0.5], time_from_start: {sec: 1, nanosec: 0}}]}"
 ```
-
-The position ranges ranges are [0.0, 1.1] (open, closed).
-
-### Launching Franka gripper
-
-> TODO: Not implemented yet!

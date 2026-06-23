@@ -26,6 +26,7 @@ def generate_gripper_nodes(context):
     rpy = LaunchConfiguration('rpy').perform(context)
     xyz_ee = LaunchConfiguration('xyz_ee').perform(context)
     rpy_ee = LaunchConfiguration('rpy_ee').perform(context)
+    gripper_port = LaunchConfiguration('gripper_port').perform(context)
 
     urdf_file_name = LaunchConfiguration('urdf_file').perform(context)
 
@@ -47,6 +48,7 @@ def generate_gripper_nodes(context):
         'rpy': rpy,
         'xyz_ee': xyz_ee,
         'rpy_ee': rpy_ee,
+        'port_name': gripper_port,
     }
 
     robot_description_gripper = xacro.process_file(
@@ -208,6 +210,11 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'rpy_ee', default_value='0 0 0', description='End effector offset RPY'
+        ),
+        DeclareLaunchArgument(
+            'gripper_port',
+            default_value='/dev/ttyUSB0',
+            description='Serial port for the Dynamixel gripper (use a stable /dev/dynamixel_* symlink)',
         ),
     ]
 

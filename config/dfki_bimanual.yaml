@@ -9,6 +9,7 @@ franka_left:
   robot_ip: "192.168.1.4"
   use_fake_hardware: "false"
   end_effector_frame: "franka_left_grasp_point"
+  gripper_port: "/dev/dynamixel_left"
   urdf_description: "main_assemblies/bimanual_dfki.urdf.xacro"
   init_joint_position: [-0.5, 0.0, 0.0, -1.507, 0.0, 1.507, -0.5]
 
@@ -19,5 +20,6 @@ franka_right:
   robot_ip: "192.168.0.2"
   use_fake_hardware: "false"
   end_effector_frame: "franka_right_grasp_point"
+  gripper_port: "/dev/dynamixel_right"
   urdf_description: "main_assemblies/bimanual_dfki.urdf.xacro"
   init_joint_position: [0.5, 0.0, 0.0, -1.507, 0.0, 1.507, 0.5]

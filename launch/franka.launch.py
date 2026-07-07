@@ -226,6 +226,7 @@ def generate_robot_nodes(context):
                 'rpy': rpy,
                 'xyz_ee': xyz_ee,
                 'rpy_ee': rpy_ee,
+                'gripper_port': LaunchConfiguration('gripper_port').perform(context),
             }.items(),
             condition=UnlessCondition('true' if gripper_type == 'none' else 'false'),
         )
@@ -254,6 +255,11 @@ def generate_launch_description():
             'end_effector_frame',
             default_value='',
             description='End effector frame for cartesian impedance controller',
+        ),
+        DeclareLaunchArgument(
+            'gripper_port',
+            default_value='/dev/ttyUSB0',
+            description='Serial port for the Dynamixel gripper (use a stable /dev/dynamixel_* symlink)',
         ),
     ]
 

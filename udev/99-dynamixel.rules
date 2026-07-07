@@ -1,0 +1,17 @@
+# Stable device names for the Robotis RH-P12-RN-A gripper U2D2 adapters.
+#
+# The kernel assigns /dev/ttyUSB<N> in enumeration order, so the number is NOT
+# tied to a physical gripper (power-cycling or replugging swaps left/right).
+# These rules map each FTDI adapter's permanent serial to a fixed symlink.
+#
+# Serials were read with:  udevadm info -q property -n /dev/ttyUSB0 | grep ID_SERIAL_SHORT
+# Update the serials below if you swap adapters.
+#
+# Install:
+#   sudo cp 99-dynamixel.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+# Verify:
+#   ls -l /dev/dynamixel_*
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", ATTRS{serial}=="FT45BL9X", SYMLINK+="dynamixel_left"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", ATTRS{serial}=="FT792A6Q", SYMLINK+="dynamixel_right"

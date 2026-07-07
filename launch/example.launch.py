@@ -55,6 +55,8 @@ def generate_robot_nodes(context):
             }
             if 'end_effector_frame' in config:
                 launch_kwargs['end_effector_frame'] = str(config['end_effector_frame'])
+            if 'gripper_port' in config:
+                launch_kwargs['gripper_port'] = str(config['gripper_port'])
 
             nodes.append(
                 IncludeLaunchDescription(

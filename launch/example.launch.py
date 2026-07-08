@@ -16,7 +16,7 @@ from launch_ros.substitutions import FindPackageShare
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
 sys.path.append(os.path.abspath(utils_path))
-from launch_utils import load_yaml  # noqa: E402
+from launch_utils import load_yaml, merge_overrides  # noqa: E402
 
 logging.root.setLevel(logging.INFO)
 
@@ -28,6 +28,7 @@ def generate_robot_nodes(context):
     print(config_file)
 
     configs = load_yaml(config_file)
+    overrides_file = LaunchConfiguration('overrides_file').perform(context)
 
     spawn_robots = []
     if LaunchConfiguration('spawn_franka_left').perform(context).lower() == 'true':
@@ -38,6 +39,7 @@ def generate_robot_nodes(context):
     for item_name, config in configs.items():
         if item_name in spawn_robots:
             print('Spawn', item_name)
+            config = merge_overrides(config, overrides_file, item_name)
             namespace = config['namespace']
 
             # check overwrite use_fake_hardware
@@ -52,6 +54,7 @@ def generate_robot_nodes(context):
                 'namespace': str(namespace),
                 'robot_ip': str(config['robot_ip']),
                 'use_fake_hardware': str(use_fake_hardware),
+                'overrides_file': overrides_file,
             }
             if 'end_effector_frame' in config:
                 launch_kwargs['end_effector_frame'] = str(config['end_effector_frame'])
@@ -107,6 +110,11 @@ def generate_launch_description():
                 'use_fake_hardware',
                 default_value='false',
                 description='Overwrite use_fake_hardware from config file',
+            ),
+            DeclareLaunchArgument(
+                'overrides_file',
+                default_value='',
+                description='Path to a robot_overrides.yaml that overrides per-arm config keys',
             ),
             OpaqueFunction(function=generate_robot_nodes),
         ]

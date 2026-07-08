@@ -3,6 +3,7 @@
 ############################################################################
 
 import os
+import sys
 import yaml
 import xacro
 import tempfile
@@ -15,6 +16,11 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+package_share = get_package_share_directory('franka_launch')
+utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
+sys.path.append(os.path.abspath(utils_path))
+from launch_utils import merge_overrides  # noqa: E402
+
 
 def generate_robot_nodes(context):
     # dfki_fr3_left or dfki_fr3_right (from dfki_bimanual.yaml)
@@ -23,7 +29,7 @@ def generate_robot_nodes(context):
         robot_config_name += '.yaml'
 
     yaml_path = os.path.join(
-        get_package_share_directory('franka_robot_description'),
+        get_package_share_directory('franka_launch'),
         'config',
         robot_config_name,
     )
@@ -33,7 +39,9 @@ def generate_robot_nodes(context):
     with open(yaml_path, 'r') as f:
         y_config = yaml.safe_load(f)
 
-    robot_config = y_config.get('robot_config', {})
+    namespace = LaunchConfiguration('namespace').perform(context)
+    overrides_file = LaunchConfiguration('overrides_file').perform(context)
+    robot_config = merge_overrides(y_config.get('robot_config', {}), overrides_file, namespace)
     urdf_file_name = y_config.get('urdf_description', 'main_assemblies/bimanual_dfki.urdf.xacro')
     gripper_type = robot_config.get('gripper_type', 'franka_default')
     xyz = robot_config.get('xyz', '0 0 0')
@@ -76,7 +84,6 @@ def generate_robot_nodes(context):
         indent='  '
     )
 
-    namespace = LaunchConfiguration('namespace').perform(context)
     controllers_yaml = PathJoinSubstitution(
         [FindPackageShare('franka_launch'), 'config', 'controllers.yaml']
     ).perform(context)
@@ -240,7 +247,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'robot_config',
             default_value='fr3',
-            description='Name of the robot config yaml in franka_robot_description',
+            description='Name of the robot config yaml in franka_launch/config',
         ),
         DeclareLaunchArgument('namespace', default_value='', description='Namespace for the robot'),
         DeclareLaunchArgument(
@@ -260,6 +267,11 @@ def generate_launch_description():
             'gripper_port',
             default_value='/dev/ttyUSB0',
             description='Serial port for the Dynamixel gripper (use a stable /dev/dynamixel_* symlink)',
+        ),
+        DeclareLaunchArgument(
+            'overrides_file',
+            default_value='',
+            description='Path to a robot_overrides.yaml that overrides this arm\'s robot_config keys',
         ),
     ]
 

@@ -66,6 +66,9 @@
       joint_trajectory_controller:
         type: joint_trajectory_controller/JointTrajectoryController
 
+      bspline_joint_controller:
+        type: bspline_controller/BsplineJointController
+
 /**:
   joint_position_adaptable_controller:
     ros__parameters:
@@ -331,3 +334,50 @@
       use_local_jacobian: true
       # limit_error: true
       # limit_torques: true
+
+/**:
+  bspline_joint_controller:
+    ros__parameters:
+      joints:
+        - fr3_joint1
+        - fr3_joint2
+        - fr3_joint3
+        - fr3_joint4
+        - fr3_joint5
+        - fr3_joint6
+        - fr3_joint7
+
+      command_mode: absolute
+      segment_duration: 0.02
+      max_target_delta: 0.2
+
+      topics:
+        target_joint: target_joint
+
+      use_gravity_compensation: false
+      use_coriolis_compensation: true
+      use_friction_compensation: false
+
+      max_delta_tau: 1.0
+
+      joint_limit_repulsion:
+        enabled: true
+        safe_range: 0.1
+        max_torque: 5.0
+
+      # Matches joint_impedance_controller
+      gains:
+        franka_right_fr3_joint1: { p: 100.0, d: 50.0 }
+        franka_right_fr3_joint2: { p: 100.0, d: 50.0 }
+        franka_right_fr3_joint3: { p: 100.0, d: 50.0 }
+        franka_right_fr3_joint4: { p: 100.0, d: 50.0 }
+        franka_right_fr3_joint5: { p: 30.0, d: 15.0 }
+        franka_right_fr3_joint6: { p: 20.0, d: 10.0 }
+        franka_right_fr3_joint7: { p: 10.0, d: 5.0 }
+        franka_left_fr3_joint1: { p: 100.0, d: 50.0 }
+        franka_left_fr3_joint2: { p: 100.0, d: 50.0 }
+        franka_left_fr3_joint3: { p: 100.0, d: 50.0 }
+        franka_left_fr3_joint4: { p: 100.0, d: 50.0 }
+        franka_left_fr3_joint5: { p: 30.0, d: 15.0 }
+        franka_left_fr3_joint6: { p: 20.0, d: 10.0 }
+        franka_left_fr3_joint7: { p: 10.0, d: 5.0 }

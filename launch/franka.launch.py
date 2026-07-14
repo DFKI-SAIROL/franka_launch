@@ -9,12 +9,33 @@ import xacro
 import tempfile
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, Shutdown
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    IncludeLaunchDescription,
+    LogInfo,
+    OpaqueFunction,
+    RegisterEventHandler,
+    Shutdown,
+)
 from launch.conditions import UnlessCondition
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+# Adjust the config tresholds
+COLLISION_BEHAVIOR_THRESHOLDS = (
+    '{lower_torque_thresholds_acceleration: [20,20,18,18,16,14,12], '
+    'upper_torque_thresholds_acceleration: [20,20,18,18,16,14,12], '
+    'lower_torque_thresholds_nominal: [20,20,18,18,16,14,12], '
+    'upper_torque_thresholds_nominal: [20,20,18,18,16,14,12], '
+    'lower_force_thresholds_acceleration: [40,40,40,50,50,50], '
+    'upper_force_thresholds_acceleration: [40,40,40,50,50,50], '
+    'lower_force_thresholds_nominal: [40,40,40,50,50,50], '
+    'upper_force_thresholds_nominal: [40,40,40,50,50,50]}'
+)
 
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
@@ -202,15 +223,42 @@ def generate_robot_nodes(context):
         '30',
     ]
 
-    nodes.append(
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            namespace=namespace,
-            arguments=arm_spawner_args,
-            output='screen',
-        )
+    arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace=namespace,
+        arguments=arm_spawner_args,
+        output='screen',
     )
+    nodes.append(arm_controller_spawner)
+
+    if not use_fake_hardware:
+        service_name = (
+            f'/{namespace}/service_server/set_full_collision_behavior'
+            if namespace
+            else '/service_server/set_full_collision_behavior'
+        )
+        nodes.append(
+            RegisterEventHandler(
+                OnProcessExit(
+                    target_action=arm_controller_spawner,
+                    on_exit=[
+                        LogInfo(
+                            msg=f'[{namespace or "franka"}] Raising collision behavior thresholds via {service_name} ...'
+                        ),
+                        ExecuteProcess(
+                            cmd=[
+                                'ros2', 'service', 'call',
+                                service_name,
+                                'franka_msgs/srv/SetFullCollisionBehavior',
+                                COLLISION_BEHAVIOR_THRESHOLDS,
+                            ],
+                            output='screen',
+                        ),
+                    ],
+                )
+            )
+        )
 
     nodes.append(
         IncludeLaunchDescription(

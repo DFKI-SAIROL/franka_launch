@@ -45,10 +45,24 @@ def merge_overrides(base, overrides_file, key):
 
     No-op if overrides_file is unset or missing, so callers stay runnable
     without a top-level overrides file present.
+
+    For standard arms with gripper_type set, an absent or 'auto' frame is
+    derived from the gripper. Explicit frame names are preserved.
     """
     if not overrides_file or not os.path.exists(overrides_file):
         return base
     overrides = load_yaml(overrides_file) or {}
     merged = dict(base)
     merged.update(overrides.get(key, {}))
+    # Keep robot bringup, IK, and teleop on the frame provided by the gripper.
+    # Explicit tool frames take precedence over automatic selection.
+    if key in {'franka_left', 'franka_right'} and 'gripper_type' in merged:
+        gripper_type = merged['gripper_type']
+        no_gripper = gripper_type is None or str(gripper_type).lower() == 'none'
+        if no_gripper:
+            # Xacro mappings require strings, including for YAML null values.
+            merged['gripper_type'] = 'none'
+        if merged.get('end_effector_frame', 'auto') == 'auto':
+            suffix = 'fr3_link8' if no_gripper else 'grasp_point'
+            merged['end_effector_frame'] = f'{key}_{suffix}'
     return merged

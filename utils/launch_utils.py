@@ -23,6 +23,23 @@ def load_yaml(file_path):
         return yaml.safe_load(file)
 
 
+def load_overrides(overrides_file):
+    """Load a top-level overrides file, or return an empty mapping if unset."""
+    if not overrides_file:
+        return {}
+    return load_yaml(overrides_file) or {}
+
+
+def resolve_bool_override(overrides, key, launch_value, default):
+    """Resolve a boolean with CLI > overrides file > built-in precedence."""
+    value = launch_value if launch_value != '' else overrides.get(key, default)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in {'true', 'false'}:
+        return value.lower() == 'true'
+    raise ValueError(f"{key} must be true or false, got {value!r}")
+
+
 def merge_overrides(base, overrides_file, key):
     """Shallow-merge overrides_file[key] onto a copy of base.
 

@@ -16,7 +16,12 @@ from launch_ros.substitutions import FindPackageShare
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
 sys.path.append(os.path.abspath(utils_path))
-from launch_utils import load_yaml, merge_overrides  # noqa: E402
+from launch_utils import (  # noqa: E402
+    load_overrides,
+    load_yaml,
+    merge_overrides,
+    resolve_bool_override,
+)
 
 logging.root.setLevel(logging.INFO)
 
@@ -29,11 +34,31 @@ def generate_robot_nodes(context):
 
     configs = load_yaml(config_file)
     overrides_file = LaunchConfiguration('overrides_file').perform(context)
+    overrides = load_overrides(overrides_file)
+
+    spawn_franka_left = resolve_bool_override(
+        overrides,
+        'spawn_franka_left',
+        LaunchConfiguration('spawn_franka_left').perform(context),
+        True,
+    )
+    spawn_franka_right = resolve_bool_override(
+        overrides,
+        'spawn_franka_right',
+        LaunchConfiguration('spawn_franka_right').perform(context),
+        True,
+    )
+    use_fake_hardware = resolve_bool_override(
+        overrides,
+        'use_fake_hardware',
+        LaunchConfiguration('use_fake_hardware').perform(context),
+        False,
+    )
 
     spawn_robots = []
-    if LaunchConfiguration('spawn_franka_left').perform(context).lower() == 'true':
+    if spawn_franka_left:
         spawn_robots.append('franka_left')
-    if LaunchConfiguration('spawn_franka_right').perform(context).lower() == 'true':
+    if spawn_franka_right:
         spawn_robots.append('franka_right')
 
     for item_name, config in configs.items():
@@ -42,18 +67,11 @@ def generate_robot_nodes(context):
             config = merge_overrides(config, overrides_file, item_name)
             namespace = config['namespace']
 
-            # check overwrite use_fake_hardware
-            use_fake_hardware = config['use_fake_hardware']
-            if LaunchConfiguration('use_fake_hardware').perform(context).lower() == 'true':
-                use_fake_hardware = 'true'
-            if LaunchConfiguration('use_fake_hardware').perform(context).lower() == 'false':
-                use_fake_hardware = 'false'
-
             launch_kwargs = {
                 'robot_config': str(config['robot_config']),
                 'namespace': str(namespace),
                 'robot_ip': str(config['robot_ip']),
-                'use_fake_hardware': str(use_fake_hardware),
+                'use_fake_hardware': str(use_fake_hardware).lower(),
                 'overrides_file': overrides_file,
             }
             if 'end_effector_frame' in config:
@@ -98,18 +116,18 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 'spawn_franka_left',
-                default_value='true',
-                description='Spawn franka left',
+                default_value='',
+                description='Spawn franka left (defaults to overrides file, then true)',
             ),
             DeclareLaunchArgument(
                 'spawn_franka_right',
-                default_value='true',
-                description='Spawn franka right',
+                default_value='',
+                description='Spawn franka right (defaults to overrides file, then true)',
             ),
             DeclareLaunchArgument(
                 'use_fake_hardware',
-                default_value='false',
-                description='Overwrite use_fake_hardware from config file',
+                default_value='',
+                description='Use fake hardware (defaults to overrides file, then false)',
             ),
             DeclareLaunchArgument(
                 'overrides_file',

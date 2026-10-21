@@ -9,3 +9,23 @@ robot_config:
   rpy: "0 0 0"
   xyz_ee: "0 0 0.0025"
   rpy_ee: "0 0 -0.785398"
+
+  # Set on every launch; libfranka resets them on connect. Torques [Nm] joint1..7,
+  # forces [N, N, N, Nm, Nm, Nm]. Above upper_* the arm stops with a reflex error.
+  collision_behavior:
+    lower_torque_thresholds_acceleration: [20.0, 20.0, 18.0, 18.0, 16.0, 14.0, 12.0]
+    upper_torque_thresholds_acceleration: [20.0, 20.0, 18.0, 18.0, 16.0, 14.0, 12.0]
+    lower_torque_thresholds_nominal: [20.0, 20.0, 18.0, 18.0, 16.0, 14.0, 12.0]
+    upper_torque_thresholds_nominal: [20.0, 20.0, 18.0, 18.0, 16.0, 14.0, 12.0]
+    lower_force_thresholds_acceleration: [40.0, 40.0, 40.0 ,50.0 ,50.0 ,50.0]
+    upper_force_thresholds_acceleration: [40.0, 40.0, 40.0 ,50.0 ,50.0 ,50.0]
+    lower_force_thresholds_nominal: [40.0, 40.0, 40.0 ,50.0 ,50.0 ,50.0]
+    upper_force_thresholds_nominal: [40.0, 40.0, 40.0 ,50.0 ,50.0 ,50.0]
+    # lower_torque_thresholds_acceleration: [40.0, 40.0, 36.0, 36.0, 32.0, 28.0, 24.0]
+    # upper_torque_thresholds_acceleration: [60.0, 60.0, 56.0, 56.0, 50.0, 46.0, 40.0]
+    # lower_torque_thresholds_nominal: [40.0, 40.0, 36.0, 36.0, 32.0, 28.0, 24.0]
+    # upper_torque_thresholds_nominal: [60.0, 60.0, 56.0, 56.0, 50.0, 46.0, 40.0]
+    # lower_force_thresholds_acceleration: [40.0, 40.0, 40.0, 50.0, 50.0, 50.0]
+    # upper_force_thresholds_acceleration: [60.0, 60.0, 60.0, 70.0, 70.0, 70.0]
+    # lower_force_thresholds_nominal: [40.0, 40.0, 40.0, 50.0, 50.0, 50.0]
+    # upper_force_thresholds_nominal: [60.0, 60.0, 60.0, 70.0, 70.0, 70.0]

@@ -117,7 +117,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        zed_base_link:
+        zed_camera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -250,7 +250,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        zed_base_link:
+        zed_camera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -350,7 +350,7 @@ Visualization Manager:
           Value: true
         world:
           Value: true
-        zed_base_link:
+        zed_camera_link:
           Value: true
         zed_camera_center:
           Value: true
@@ -400,7 +400,7 @@ Visualization Manager:
                                 franka_right_rh_p12_rn_r2:
                                   {}
                             zed_camera_holder:
-                              zed_base_link:
+                              zed_camera_link:
                                 zed_camera_center:
                                   zed_left_camera_frame:
                                     zed_left_camera_optical_frame:

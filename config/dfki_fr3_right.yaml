@@ -2,7 +2,10 @@ robot_config:
   urdf_file: "robots/fr3/fr3.urdf.xacro"
   arm_id: "fr3"
   arm_prefix: "franka_right"
-  gripper_type: "rh_p12_rn_a" # <franka_default|rh_p12_rn_a>
+  gripper_type: "rh_p12_rn_a" # <franka_default|rh_p12_rn_a|none>
+  camera_name: "zed_right_arm"
+  camera_model: "zedxm"
+  camera_holder_parent_frame: "fr3_link8"
   arm_controller: "joint_impedance_controller" # <joint_impedance_controller|cartesian_impedance_controller>
   gripper_controller: "none"
   xyz: "-0.06 -0.585 0"

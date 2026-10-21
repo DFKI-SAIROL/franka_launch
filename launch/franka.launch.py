@@ -25,7 +25,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
-# Adjust the config tresholds
+
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
 sys.path.append(os.path.abspath(utils_path))
@@ -63,6 +63,11 @@ def generate_robot_nodes(context):
 
     arm_controller = robot_config.get('arm_controller', 'joint_impedance_controller')
 
+    # camera_name is the TF prefix and the ZED driver's namespace; 'none' = no camera.
+    camera_name = robot_config.get('camera_name', 'none')
+    camera_model = robot_config.get('camera_model', 'zedxm')
+    camera_holder_parent_frame = robot_config.get('camera_holder_parent_frame', f'{arm_id}_link8')
+
     load_franka_gripper = gripper_type == 'franka_default'
     use_fake_hardware_launch_configuration = LaunchConfiguration('use_fake_hardware').perform(
         context
@@ -85,6 +90,9 @@ def generate_robot_nodes(context):
         'rpy': rpy,
         'xyz_ee': xyz_ee,
         'rpy_ee': rpy_ee,
+        'camera_name': camera_name,
+        'camera_model': camera_model,
+        'camera_holder_parent_frame': camera_holder_parent_frame,
     }
 
     # Unified URDF (Franka HW Active, Dynamixel HW Disabled for decoupled control)

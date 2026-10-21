@@ -1,4 +1,7 @@
+import tempfile
+
 import xacro
+import yaml
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, Shutdown
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -11,8 +14,9 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_gripper_nodes(context):
     gripper_type = LaunchConfiguration('gripper_type').perform(context)
 
-    # If no gripper is requested, return empty list
-    if gripper_type == 'none':
+    # Passive end-effectors get no ros2_control/serial nodes, so an arm without a
+    # gripper never opens a Dynamixel port the other arm may be using.
+    if gripper_type not in ('franka_default', 'rh_p12_rn_a'):
         return []
 
     # Get arguments
@@ -48,7 +52,7 @@ def generate_gripper_nodes(context):
         'rpy': rpy,
         'xyz_ee': xyz_ee,
         'rpy_ee': rpy_ee,
-        'port_name': gripper_port,
+        'gripper_port': gripper_port,
     }
 
     robot_description_gripper = xacro.process_file(
@@ -113,7 +117,7 @@ def generate_gripper_nodes(context):
             )
 
     # Dynamixel specific loading
-    elif gripper_type == 'rh_p12_rn_a' or gripper_type == 'dynamixel':
+    elif gripper_type == 'rh_p12_rn_a':
         controllers_yaml = PathJoinSubstitution(
             [FindPackageShare('franka_launch'), 'config', 'dynamixel_controllers.yaml']
         ).perform(context)
@@ -124,6 +128,15 @@ def generate_gripper_nodes(context):
             if namespace
             else '/franka_gripper/joint_states'
         )
+
+        gripper_joint = f'{arm_prefix}_rh_r1' if arm_prefix else 'rh_r1'
+        gripper_params = {
+            '/**/gripper_controller': {'ros__parameters': {'joints': [gripper_joint]}},
+            '/**/gripper_joint_state_broadcaster': {'ros__parameters': {'joints': [gripper_joint]}},
+        }
+        gripper_param_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml')
+        yaml.dump(gripper_params, gripper_param_file)
+        gripper_param_file.close()
 
         # Spawning generic parameters for Dynamixel
         nodes.append(
@@ -138,6 +151,7 @@ def generate_gripper_nodes(context):
                         'use_fake_hardware': use_fake_hardware,
                         'use_local_parameters': True,
                     },
+                    gripper_param_file.name,
                 ],
                 remappings=[
                     ('joint_states', abs_joint_states),

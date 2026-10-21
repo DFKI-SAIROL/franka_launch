@@ -89,17 +89,18 @@ def generate_robot_nodes(context):
                     launch_arguments=launch_kwargs.items(),
                 )
             )
-    rviz_file = os.path.join(
-        get_package_share_directory('franka_launch'), 'rviz', 'visualize_franka.rviz'
-    )
-    nodes.append(
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['--display-config', rviz_file, '-f', 'world'],
+    if LaunchConfiguration('use_rviz').perform(context).lower() == 'true':
+        rviz_file = os.path.join(
+            get_package_share_directory('franka_launch'), 'rviz', 'visualize_franka.rviz'
         )
-    )
+        nodes.append(
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                name='rviz2',
+                arguments=['--display-config', rviz_file, '-f', 'world'],
+            )
+        )
 
     return nodes
 
@@ -128,6 +129,11 @@ def generate_launch_description():
                 'use_fake_hardware',
                 default_value='',
                 description='Use fake hardware (defaults to overrides file, then false)',
+            ),
+            DeclareLaunchArgument(
+                'use_rviz',
+                default_value='true',
+                description='Start RViz2',
             ),
             DeclareLaunchArgument(
                 'overrides_file',

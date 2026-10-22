@@ -37,6 +37,12 @@ COLLISION_BEHAVIOR_THRESHOLDS = (
     'upper_force_thresholds_nominal: [40,40,40,50,50,50]}'
 )
 
+# Wrist camera keys of robot_config passed to the description (bimanual_dfki.urdf.xacro); the
+# same list is declared by gripper.launch.py. cam_pos_* / cam_roll..cam_yaw: the calibrated
+# mount correction (scripts/python/board_calibration.py in the workspace).
+CAMERA_KEYS = ('camera_name', 'camera_model', 'cam_holder_yaw', 'cam_image_flip',
+               'cam_pos_x', 'cam_pos_y', 'cam_pos_z', 'cam_roll', 'cam_pitch', 'cam_yaw')
+
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
 sys.path.append(os.path.abspath(utils_path))
@@ -97,6 +103,9 @@ def generate_robot_nodes(context):
         'xyz_ee': xyz_ee,
         'rpy_ee': rpy_ee,
     }
+    # Optional per-arm wrist camera mount (see bimanual_dfki.urdf.xacro)
+    camera_mappings = {key: str(robot_config[key]) for key in CAMERA_KEYS if key in robot_config}
+    base_mappings.update(camera_mappings)
 
     # Unified URDF (Franka HW Active, Dynamixel HW Disabled for decoupled control)
     urdf_mappings = base_mappings.copy()
@@ -282,6 +291,11 @@ def generate_robot_nodes(context):
                 'xyz_ee': xyz_ee,
                 'rpy_ee': rpy_ee,
                 'gripper_port': LaunchConfiguration('gripper_port').perform(context),
+                # Its state publisher sends the whole arm + camera to /tf_static as well: the
+                # camera has to be the same, or the two versions of its frames race there. Every
+                # key is passed (empty = description default): launch arguments of an include stay
+                # set in the launch context, so the other arm's values would leak in otherwise.
+                **{key: camera_mappings.get(key, '') for key in CAMERA_KEYS},
             }.items(),
             condition=UnlessCondition('true' if gripper_type == 'none' else 'false'),
         )

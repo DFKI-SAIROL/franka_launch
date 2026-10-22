@@ -5,7 +5,17 @@ robot_config:
   gripper_type: "rh_p12_rn_a" # <franka_default|rh_p12_rn_a>
   arm_controller: "joint_impedance_controller" # <joint_impedance_controller|cartesian_impedance_controller>
   gripper_controller: "none"
-  xyz: "-0.06 0.585 0"
-  rpy: "0 0 0"
+  xyz: "-0.030196 0.590906 -0.019204"
+  rpy: "-0.023479 -0.018545 -0.000788"
   xyz_ee: "0 0 0.0025"
-  rpy_ee: "0 0 -0.785398"
+  # End effector (gripper + wrist ZED) mounted on the flange at -pi/4 + pi, the same on both arms
+  # (the right one used to be mounted the other way round, 2026-10-23). The ArUco board confirmed
+  # this mount for the left camera (58 mm / ~8 deg from the right arm's view; others 50-85 cm off).
+  rpy_ee: "0 0 2.356194490"
+  cam_holder_yaw: "2.356194490"
+  cam_pos_x: "-0.024893"
+  cam_pos_y: "-0.044200"
+  cam_pos_z: "0.023467"
+  cam_roll: "-0.125383"
+  cam_pitch: "-0.087689"
+  cam_yaw: "0.023714"

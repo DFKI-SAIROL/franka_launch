@@ -71,17 +71,18 @@ def generate_robot_nodes(context):
                     launch_arguments=launch_kwargs.items(),
                 )
             )
-    rviz_file = os.path.join(
-        get_package_share_directory('franka_launch'), 'rviz', 'visualize_franka.rviz'
-    )
-    nodes.append(
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['--display-config', rviz_file, '-f', 'world'],
+    if LaunchConfiguration('use_rviz').perform(context).lower() == 'true':
+        rviz_file = os.path.join(
+            get_package_share_directory('franka_launch'), 'rviz', 'visualize_franka.rviz'
         )
-    )
+        nodes.append(
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                name='rviz2',
+                arguments=['--display-config', rviz_file, '-f', 'world'],
+            )
+        )
 
     return nodes
 
@@ -115,6 +116,11 @@ def generate_launch_description():
                 'overrides_file',
                 default_value='',
                 description='Path to a robot_overrides.yaml that overrides per-arm config keys',
+            ),
+            DeclareLaunchArgument(
+                'use_rviz',
+                default_value='false',
+                description='Start rviz2 with the robot visualization',
             ),
             OpaqueFunction(function=generate_robot_nodes),
         ]

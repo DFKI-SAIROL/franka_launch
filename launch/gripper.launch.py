@@ -7,6 +7,11 @@ from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
+# The wrist camera keys of franka.launch.py (CAMERA_KEYS): the gripper's state publisher sends the
+# whole description to /tf_static too, so its camera frames have to match the arm's.
+CAMERA_KEYS = ('camera_name', 'camera_model', 'cam_holder_yaw', 'cam_image_flip',
+               'cam_pos_x', 'cam_pos_y', 'cam_pos_z', 'cam_roll', 'cam_pitch', 'cam_yaw')
+
 
 def generate_gripper_nodes(context):
     gripper_type = LaunchConfiguration('gripper_type').perform(context)
@@ -50,6 +55,10 @@ def generate_gripper_nodes(context):
         'rpy_ee': rpy_ee,
         'port_name': gripper_port,
     }
+    for key in CAMERA_KEYS:
+        value = LaunchConfiguration(key).perform(context)
+        if value:
+            gripper_mappings[key] = value
 
     robot_description_gripper = xacro.process_file(
         urdf_path, mappings=gripper_mappings
@@ -216,6 +225,9 @@ def generate_launch_description():
             default_value='/dev/ttyUSB0',
             description='Serial port for the Dynamixel gripper (use a stable /dev/dynamixel_* symlink)',
         ),
+    ] + [
+        DeclareLaunchArgument(key, default_value='', description='Wrist camera (empty: description default)')
+        for key in CAMERA_KEYS
     ]
 
     return LaunchDescription(launch_args + [OpaqueFunction(function=generate_gripper_nodes)])

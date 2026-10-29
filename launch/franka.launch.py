@@ -40,7 +40,7 @@ COLLISION_BEHAVIOR_THRESHOLDS = (
 # Wrist camera keys of robot_config passed to the description (bimanual_dfki.urdf.xacro); the
 # same list is declared by gripper.launch.py. cam_pos_* / cam_roll..cam_yaw: the calibrated
 # mount correction (scripts/python/board_calibration.py in the workspace).
-CAMERA_KEYS = ('camera_name', 'camera_model', 'cam_holder_yaw', 'cam_image_flip',
+CAMERA_KEYS = ('camera_name', 'camera_model', 'camera_holder', 'cam_holder_yaw', 'cam_image_flip',
                'cam_pos_x', 'cam_pos_y', 'cam_pos_z', 'cam_roll', 'cam_pitch', 'cam_yaw')
 
 package_share = get_package_share_directory('franka_launch')

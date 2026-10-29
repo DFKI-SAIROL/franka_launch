@@ -12,9 +12,19 @@ robot_config:
   # relative to the old -pi/4 (the old value matched a wrongly mounted right end effector).
   rpy_ee: "0 0 2.356194490"
   cam_holder_yaw: "2.356194490"
-  cam_pos_x: "-0.040247"
-  cam_pos_y: "-0.026261"
-  cam_pos_z: "0.017605"
-  cam_roll: "-0.008170"
-  cam_pitch: "0.018099"
-  cam_yaw: "0.016730"
+  # Wrist holder: "short" = zed_holder_short.stl (2026-10-29), "default" = zed_holder.stl.
+  camera_holder: "short"
+  # Mount correction of the short holder: zero (nominal CAD pose) until the board calibration
+  # (studio: Camera calibration) writes it. Calibrated values of the default holder:
+  # cam_pos_x: "-0.061280"
+  # cam_pos_y: "-0.011874"
+  # cam_pos_z: "0.072535"
+  # cam_roll: "0.497596"
+  # cam_pitch: "0.453432"
+  # cam_yaw: "0.124888"
+  cam_pos_x: "-0.039538"
+  cam_pos_y: "-0.032797"
+  cam_pos_z: "0.023360"
+  cam_roll: "-0.014015"
+  cam_pitch: "-0.006800"
+  cam_yaw: "0.009822"

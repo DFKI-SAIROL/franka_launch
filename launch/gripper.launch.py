@@ -9,7 +9,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 # The wrist camera keys of franka.launch.py (CAMERA_KEYS): the gripper's state publisher sends the
 # whole description to /tf_static too, so its camera frames have to match the arm's.
-CAMERA_KEYS = ('camera_name', 'camera_model', 'cam_holder_yaw', 'cam_image_flip',
+CAMERA_KEYS = ('camera_name', 'camera_model', 'camera_holder', 'cam_holder_yaw', 'cam_image_flip',
                'cam_pos_x', 'cam_pos_y', 'cam_pos_z', 'cam_roll', 'cam_pitch', 'cam_yaw')
 
 

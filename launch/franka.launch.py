@@ -119,7 +119,6 @@ def generate_robot_nodes(context):
         'arm_prefix': arm_prefix,
     }
 
-    broadcaster_arm_id = f'{arm_prefix}_{arm_id}' if arm_prefix else arm_id
     joints_list = [
         f'{arm_prefix}_{arm_id}_joint{i}' if arm_prefix else f'{arm_id}_joint{i}'
         for i in range(1, 8)
@@ -127,6 +126,10 @@ def generate_robot_nodes(context):
 
     controller_params = {
         f'/**/{arm_controller}': {'ros__parameters': {'joints': joints_list}},
+        # The broadcaster builds its state interface name from arm_prefix and robot_type
+        '/**/franka_robot_state_broadcaster': {
+            'ros__parameters': {'robot_type': arm_id, 'arm_prefix': arm_prefix}
+        },
     }
 
     if arm_controller == 'joint_trajectory_controller':
@@ -207,8 +210,6 @@ def generate_robot_nodes(context):
                 'franka_robot_state_broadcaster',
                 '-c',
                 f'/{namespace}/controller_manager' if namespace else '/controller_manager',
-                '-p',
-                f'arm_id:={broadcaster_arm_id}',
             ],
             condition=UnlessCondition(LaunchConfiguration('use_fake_hardware')),
             output='screen',

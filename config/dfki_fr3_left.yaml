@@ -5,8 +5,8 @@ robot_config:
   gripper_type: "rh_p12_rn_a" # <franka_default|rh_p12_rn_a>
   arm_controller: "joint_impedance_controller" # <joint_impedance_controller|cartesian_impedance_controller>
   gripper_controller: "none"
-  xyz: "-0.038289 0.591944 -0.007081"
-  rpy: "0.011981 -0.028574 0.003740"
+  xyz: "-0.053717 0.581092 -0.021120"
+  rpy: "-0.006101 -0.009224 0.023161"
   xyz_ee: "0 0 0.0025"
   # End effector (gripper + wrist ZED) mounted on the flange at -pi/4 + pi, the same on both arms
   # (the right one used to be mounted the other way round, 2026-10-23). The ArUco board confirmed
@@ -23,9 +23,9 @@ robot_config:
   # cam_roll: "0.498033"
   # cam_pitch: "0.454078"
   # cam_yaw: "0.132811"
-  cam_pos_x: "-0.034304"
-  cam_pos_y: "-0.046503"
-  cam_pos_z: "0.022146"
-  cam_roll: "-0.034945"
-  cam_pitch: "0.000216"
-  cam_yaw: "0.017940"
+  cam_pos_x: "-0.028095"
+  cam_pos_y: "-0.036216"
+  cam_pos_z: "0.015250"
+  cam_roll: "-0.014637"
+  cam_pitch: "-0.007382"
+  cam_yaw: "0.011465"

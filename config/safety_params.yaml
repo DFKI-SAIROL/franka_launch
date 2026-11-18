@@ -4,11 +4,11 @@
     joint_velocity_limit: 1.0
     cartesian_velocity_limit: 1.0
     K_NULL: 0.1
-    dls_lambda: 0.01             # base DLS damping
-    dls_lambda_max: 0.05         # extra damping added near singularities
-    singularity_threshold: 0.15  # smallest Jacobian singular value where extra damping starts (home ~0.22)
-    singularity_sigma_stop: 0.04 # the arm slows down towards a singularity and stops at this singular value
-    singularity_gain: 2.0        # [1/s] how fast it may approach sigma_stop (lower = slows down earlier)
+    dls_lambda: 0.001            # base DLS damping (was 0.01: damped ~17% of the motion even at home)
+    dls_lambda_max: 0.02         # extra damping added near singularities (was 0.05)
+    singularity_threshold: 0.08  # smallest Jacobian singular value where extra damping starts (home ~0.22; was 0.15)
+    singularity_sigma_stop: 0.02 # the arm slows down towards a singularity and stops at this singular value (was 0.04)
+    singularity_gain: 8.0        # [1/s] how fast it may approach sigma_stop (lower = slows down earlier; was 2.0)
     joint_limit_buffer: 0.15     # [rad] IK keeps joints this far away from their limits
     joint_limit_gain: 5.0        # [1/s] how fast a joint may approach the buffer (lower = slows down earlier)
     joint_limit_margin: 0.1    # [rad] hard clamp of the joint command inside the URDF limits

@@ -25,17 +25,6 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
-# Adjust the config tresholds
-COLLISION_BEHAVIOR_THRESHOLDS = (
-    '{lower_torque_thresholds_acceleration: [20,20,18,18,16,14,12], '
-    'upper_torque_thresholds_acceleration: [20,20,18,18,16,14,12], '
-    'lower_torque_thresholds_nominal: [20,20,18,18,16,14,12], '
-    'upper_torque_thresholds_nominal: [20,20,18,18,16,14,12], '
-    'lower_force_thresholds_acceleration: [40,40,40,50,50,50], '
-    'upper_force_thresholds_acceleration: [40,40,40,50,50,50], '
-    'lower_force_thresholds_nominal: [40,40,40,50,50,50], '
-    'upper_force_thresholds_nominal: [40,40,40,50,50,50]}'
-)
 
 package_share = get_package_share_directory('franka_launch')
 utils_path = os.path.join(package_share, '..', '..', 'lib', 'franka_launch', 'utils')
@@ -74,6 +63,11 @@ def generate_robot_nodes(context):
 
     arm_controller = robot_config.get('arm_controller', 'joint_impedance_controller')
 
+    # camera_name is the TF prefix and the ZED driver's namespace; 'none' = no camera.
+    camera_name = robot_config.get('camera_name', 'none')
+    camera_model = robot_config.get('camera_model', 'zedxm')
+    camera_holder_parent_frame = robot_config.get('camera_holder_parent_frame', f'{arm_id}_link8')
+
     load_franka_gripper = gripper_type == 'franka_default'
     use_fake_hardware_launch_configuration = LaunchConfiguration('use_fake_hardware').perform(
         context
@@ -96,6 +90,9 @@ def generate_robot_nodes(context):
         'rpy': rpy,
         'xyz_ee': xyz_ee,
         'rpy_ee': rpy_ee,
+        'camera_name': camera_name,
+        'camera_model': camera_model,
+        'camera_holder_parent_frame': camera_holder_parent_frame,
     }
 
     # Unified URDF (Franka HW Active, Dynamixel HW Disabled for decoupled control)
@@ -159,6 +156,14 @@ def generate_robot_nodes(context):
     yaml.dump(controller_params, param_file)
     param_file.close()
 
+    jsb_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        namespace=namespace,
+        arguments=['joint_state_broadcaster'],
+        output='screen',
+    )
+
     nodes = [
         Node(
             package='robot_state_publisher',
@@ -195,13 +200,7 @@ def generate_robot_nodes(context):
             ],
             output='screen',
         ),
-        Node(
-            package='controller_manager',
-            executable='spawner',
-            namespace=namespace,
-            arguments=['joint_state_broadcaster'],
-            output='screen',
-        ),
+        jsb_spawner,
         Node(
             package='controller_manager',
             executable='spawner',
@@ -231,35 +230,43 @@ def generate_robot_nodes(context):
         arguments=arm_spawner_args,
         output='screen',
     )
-    nodes.append(arm_controller_spawner)
-
-    if not use_fake_hardware:
+    # libfranka rejects set_full_collision_behavior while a motion is running, so the
+    # thresholds have to land after the hardware is connected but before the arm controller
+    # claims the command interface.
+    collision_behavior = robot_config.get('collision_behavior')
+    if collision_behavior and not use_fake_hardware:
         service_name = (
             f'/{namespace}/service_server/set_full_collision_behavior'
             if namespace
             else '/service_server/set_full_collision_behavior'
         )
-        nodes.append(
+        set_collision_behavior = ExecuteProcess(
+            cmd=[
+                'ros2', 'service', 'call',
+                service_name,
+                'franka_msgs/srv/SetFullCollisionBehavior',
+                yaml.safe_dump(collision_behavior, default_flow_style=True, width=10000),
+            ],
+            output='screen',
+        )
+        nodes += [
             RegisterEventHandler(
                 OnProcessExit(
-                    target_action=arm_controller_spawner,
+                    target_action=jsb_spawner,
                     on_exit=[
-                        LogInfo(
-                            msg=f'[{namespace or "franka"}] Raising collision behavior thresholds via {service_name} ...'
-                        ),
-                        ExecuteProcess(
-                            cmd=[
-                                'ros2', 'service', 'call',
-                                service_name,
-                                'franka_msgs/srv/SetFullCollisionBehavior',
-                                COLLISION_BEHAVIOR_THRESHOLDS,
-                            ],
-                            output='screen',
-                        ),
+                        LogInfo(msg=f'[{namespace or "franka"}] Setting collision behavior ...'),
+                        set_collision_behavior,
                     ],
                 )
-            )
-        )
+            ),
+            RegisterEventHandler(
+                OnProcessExit(
+                    target_action=set_collision_behavior, on_exit=[arm_controller_spawner]
+                )
+            ),
+        ]
+    else:
+        nodes.append(arm_controller_spawner)
 
     nodes.append(
         IncludeLaunchDescription(

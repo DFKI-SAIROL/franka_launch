@@ -23,15 +23,41 @@ def load_yaml(file_path):
         return yaml.safe_load(file)
 
 
+def load_overrides(overrides_file):
+    """Load a top-level overrides file, or return an empty mapping if unset."""
+    if not overrides_file:
+        return {}
+    return load_yaml(overrides_file) or {}
+
+
+def resolve_bool_override(overrides, key, launch_value, default):
+    """Resolve a boolean with CLI > overrides file > built-in precedence."""
+    value = launch_value if launch_value != '' else overrides.get(key, default)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.lower() in {'true', 'false'}:
+        return value.lower() == 'true'
+    raise ValueError(f"{key} must be true or false, got {value!r}")
+
+
 def merge_overrides(base, overrides_file, key):
     """Shallow-merge overrides_file[key] onto a copy of base.
 
     No-op if overrides_file is unset or missing, so callers stay runnable
     without a top-level overrides file present.
+
+    An absent or 'auto' end_effector_frame resolves to <arm>_grasp_point, which every
+    gripper type aliases to its own tool frame. Explicit names are preserved.
     """
     if not overrides_file or not os.path.exists(overrides_file):
         return base
     overrides = load_yaml(overrides_file) or {}
     merged = dict(base)
     merged.update(overrides.get(key, {}))
+    if key in {'franka_left', 'franka_right'} and 'gripper_type' in merged:
+        if merged['gripper_type'] is None:
+            # Xacro mappings require strings, including for YAML null values.
+            merged['gripper_type'] = 'none'
+        if merged.get('end_effector_frame', 'auto') == 'auto':
+            merged['end_effector_frame'] = f'{key}_grasp_point'
     return merged

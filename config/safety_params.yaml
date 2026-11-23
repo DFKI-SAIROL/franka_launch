@@ -9,3 +9,7 @@
     use_target_interpolation: true
     target_dt: 0.02 # 0.03333333333
     timer_dt: 0.005 # 0.03333333333
+    # command/joint_position: each target is ramped to over one target period; targets
+    # further than cmd_joint_max_deviation from the measured joints are rejected.
+    cmd_joint_target_dt: 0.0333333333
+    cmd_joint_max_deviation: 0.3

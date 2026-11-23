@@ -123,6 +123,10 @@ def generate_robot_nodes(context):
 
     controller_params = {
         f'/**/{arm_controller}': {'ros__parameters': {'joints': joints_list}},
+        # The broadcaster builds its state interface name from arm_prefix and robot_type
+        '/**/franka_robot_state_broadcaster': {
+            'ros__parameters': {'robot_type': arm_id, 'arm_prefix': arm_prefix}
+        },
     }
 
     if arm_controller == 'joint_trajectory_controller':
